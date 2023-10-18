@@ -3,6 +3,7 @@ use crate::{status::Status, action::Action, InputParams};
 use serde_json::json;
 use std::fs;
 use std::env;
+use std::io::Read;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Todo {
@@ -28,18 +29,33 @@ impl Todo {
     // }
 }
 
-pub fn get_db_file(todo: Todo) -> Result<fs::File, String> {
+pub fn get_db_file() -> fs::File {
     let db_file = env::var("DB_FILE").unwrap_or("db_file".to_string());
 
     match fs::metadata(&db_file) {
         Ok(_) => {
-            fs::File::open(&db_file).map_err(|e| format!("Failed to open db file: {}", e))
+            fs::File::open(&db_file).unwrap()
         }
-        Err(_) => {
-            fs::File::create(&db_file).map_err(|e| format!("Failed to create db file: {}", e))
+        Err(e) => {
+            panic!("Failed to create db file: {}", e);
         }
     }
 }
+
+pub fn get_todos() -> Result<Vec<Todo>, String> {
+    let mut file = get_db_file();
+    let mut file_content = String::new();
+    let _ = file.read_to_string(&mut file_content).map_err(|e| format!("Failed to read from file {}", e));
+
+    let result: Result<Vec<Todo>, serde_json::Error> = serde_json::from_str(&file_content);
+
+    match result {
+        Ok(todos) => Ok(todos),
+        Err(e) => Err(format!("Failed parse json {}", e).to_owned()),
+    }
+}
+
+// Todo { name: "test".to_string(), status: Status::Open, description: "bla bla".to_string()}
 
 #[cfg(test)]
 mod tests {
@@ -51,9 +67,8 @@ mod tests {
         let file = fs::File::create("existing_file.txt").unwrap();
         dbg!(&file);
         file.sync_all().unwrap();
-        let result = get_db_file(Todo { name: "test".to_string(), status: Status::Open, description: "bla bla".to_string()});
-        assert!(result.is_ok());
-        let file_metadata = result.unwrap().metadata().unwrap();
+        let f = get_db_file();
+        let file_metadata = f.metadata().unwrap();
         assert!(file_metadata.is_file(), "{}", true);
 
         fs::remove_file("existing_file.txt").unwrap();

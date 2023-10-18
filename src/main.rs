@@ -1,6 +1,6 @@
 use std::env;
 use std::process;
-use rustodocli::InputParams;
+use rustodocli::{InputParams, run};
 
 fn main() {
     let args: Vec<String> = env::args().collect();
@@ -11,4 +11,6 @@ fn main() {
     });
 
     println!("input: {:?}", input);
+
+    run(input);
 }

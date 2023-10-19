@@ -37,6 +37,11 @@ pub fn run(params: InputParams) -> Result<(), String> {
             let todo = todo::get_todo(&params.todo_name)?;
             println!("{:?}", todo);
             Ok(())
+        },
+        action::Action::Update => {
+            let todo = todo::update_todo(params.todo_name, params.new_status, params.new_description)?;
+            println!("Successfully updated todo: {:?}", todo);
+            Ok(())
         }
         _ => Err("action not supported yet".to_string())
     }

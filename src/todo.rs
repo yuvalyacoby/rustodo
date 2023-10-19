@@ -59,6 +59,28 @@ pub fn get_todo(name: &str) -> Result<Todo, String> {
     }
 }
 
+pub fn update_todo(name: String, new_status: Option<Status>, new_description: Option<String>) -> Result<Todo, String> {
+    let db_file = env::var("DB_FILE").unwrap_or("dbfile".to_string());
+    let mut existing_todos = get_todos()?;
+    if let Some(todo) = existing_todos.iter_mut().find(|todo| todo.name == name) {
+        if let Some(status) = new_status {
+            todo.status = status;
+        }
+        if let Some(description) = new_description {
+            todo.description = description;
+        }
+    } else {
+        existing_todos.push(Todo {
+            name: name.clone(),
+            status: new_status.unwrap_or(Status::Open),
+            description: new_description.unwrap_or(String::from(""))
+        });
+    }
+    let t = serde_json::to_string::<Vec<Todo>>(&existing_todos).map_err(|e| format!("Failed to stringify new todos: {}", e))?;
+    let _ = fs::write(db_file, t);
+    get_todo(&name)
+}
+
 // Todo { name: "test".to_string(), status: Status::Open, description: "bla bla".to_string()}
 
 #[cfg(test)]

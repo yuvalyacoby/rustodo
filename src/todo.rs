@@ -5,7 +5,7 @@ use std::fs;
 use std::env;
 use std::io::Read;
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Todo {
     pub name: String,
     pub status: Status,
@@ -47,11 +47,15 @@ pub fn get_todos() -> Result<Vec<Todo>, String> {
     let mut file_content = String::new();
     let _ = file.read_to_string(&mut file_content).map_err(|e| format!("Failed to read from file {}", e));
 
-    let result: Result<Vec<Todo>, serde_json::Error> = serde_json::from_str(&file_content);
+    serde_json::from_str(&file_content).map_err(|e| format!("Failed to parse JSON: {}", e).to_string())
+}
 
-    match result {
-        Ok(todos) => Ok(todos),
-        Err(e) => Err(format!("Failed parse json {}", e).to_owned()),
+pub fn get_todo(name: &str) -> Result<Todo, String> {
+    let todos = get_todos()?;
+    if let Some(todo) = todos.iter().find(|todo| todo.name == name) {
+        Ok(todo.clone())
+    } else {
+        Err("Todo not found".to_string())
     }
 }
 

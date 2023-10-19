@@ -17,7 +17,7 @@ impl InputParams {
         }
         Ok(InputParams {
             action: args[1].parse::<action::Action>()?,
-            todo_name: args[1].to_string(),
+            todo_name: args[2].to_string(),
             new_status: args.get(3).map(|arg| arg.to_string().parse()).transpose()?,
             new_description: args.get(4).map(|arg| arg.to_string())
         })
@@ -27,12 +27,17 @@ impl InputParams {
 pub fn run(params: InputParams) -> Result<(), String> {
     match params.action {
         action::Action::GetAll => {
-            let r =  todo::get_todos()?;
+            let r = todo::get_todos()?;
             for todo in &r {
                 println!("{:?}", todo);
             }
-            return Ok(())
+            Ok(())
         },
+        action::Action::GetOne => {
+            let todo = todo::get_todo(&params.todo_name)?;
+            println!("{:?}", todo);
+            Ok(())
+        }
         _ => Err("action not supported yet".to_string())
     }
 }

@@ -12,5 +12,5 @@ fn main() {
 
     println!("input: {:?}", input);
 
-    run(input);
+    let _ = run(input).map_err(|e| eprintln!("An error occurred: {e}"));
 }

@@ -70,7 +70,15 @@ pub fn delete_all() -> Result<(), String> {
     Ok(())
 }
 
-// Todo { name: "test".to_string(), status: Status::Open, description: "bla bla".to_string()}
+pub fn delete_one(name: &str) -> Result<Vec<Todo>, String> {
+    let _ = get_todo(&name)?;
+    let existing_todos = get_todos()?;
+    let new_todos: Vec<Todo> = existing_todos.into_iter().filter(|todo| todo.name != name).collect();
+    let db_file = env::var("DB_FILE").unwrap_or("dbfile".to_string());
+    let t = serde_json::to_string::<Vec<Todo>>(&new_todos).map_err(|e| format!("Failed to stringify new todos: {}", e))?;
+    let _ = fs::write(db_file, t).map_err(|e| e.to_string())?;
+    Ok(new_todos)
+}
 
 #[cfg(test)]
 mod tests {

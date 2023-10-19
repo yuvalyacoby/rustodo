@@ -43,6 +43,11 @@ pub fn run(params: InputParams) -> Result<(), String> {
             println!("Successfully updated todo: {:?}", todo);
             Ok(())
         }
+        action::Action::DeleteAll => {
+            todo::delete_all()?;
+            println!("Successfully deleted all todos");
+            Ok(())
+        }
         _ => Err("action not supported yet".to_string())
     }
 }

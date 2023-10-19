@@ -1,6 +1,5 @@
 use serde::{Deserialize, Serialize};
-use crate::{status::Status, action::Action, InputParams};
-use serde_json::json;
+use crate::{status::Status};
 use std::fs;
 use std::env;
 use std::io::Read;
@@ -12,22 +11,6 @@ pub struct Todo {
     pub description: String
 }
 
-impl Todo {
-    // pub fn new(params: InputParams) -> Result<Todo, String> {
-    //     let status = params.new_status.unwrap_or_else(|| Status::Open);
-    //     let description = params.new_description.unwrap_or_else(|| String::from(""));
-    //     let json_todo = json!(Todo {
-    //         name: params.todo_name,
-    //         status,
-    //         description: description
-    //     });
-    //     return Ok(Todo {
-    //         name: params.todo_name,
-    //         status,
-    //         description: description
-    //     });
-    // }
-}
 
 pub fn get_db_file() -> fs::File {
     let db_file = env::var("DB_FILE").unwrap_or("dbfile".to_string());
@@ -79,6 +62,12 @@ pub fn update_todo(name: String, new_status: Option<Status>, new_description: Op
     let t = serde_json::to_string::<Vec<Todo>>(&existing_todos).map_err(|e| format!("Failed to stringify new todos: {}", e))?;
     let _ = fs::write(db_file, t);
     get_todo(&name)
+}
+
+pub fn delete_all() -> Result<(), String> {
+    let db_file = env::var("DB_FILE").unwrap_or("dbfile".to_string());
+    let _ = fs::write(db_file, String::from("[]")).map_err(|e| e.to_string())?;
+    Ok(())
 }
 
 // Todo { name: "test".to_string(), status: Status::Open, description: "bla bla".to_string()}

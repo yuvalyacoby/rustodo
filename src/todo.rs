@@ -30,14 +30,14 @@ impl Todo {
 }
 
 pub fn get_db_file() -> fs::File {
-    let db_file = env::var("DB_FILE").unwrap_or("db_file".to_string());
+    let db_file = env::var("DB_FILE").unwrap_or("dbfile".to_string());
 
     match fs::metadata(&db_file) {
         Ok(_) => {
             fs::File::open(&db_file).unwrap()
         }
-        Err(e) => {
-            panic!("Failed to create db file: {}", e);
+        Err(_) => {
+            fs::File::create(db_file).unwrap()
         }
     }
 }

@@ -5,7 +5,6 @@ mod todo;
 #[derive(Debug)]
 pub struct InputParams {
     pub action: action::Action,
-    pub todo_name: Option<String>,
     pub new_status: Option<status::Status>,
     pub new_description: Option<String>
 }
@@ -15,9 +14,10 @@ impl InputParams {
         if args.len() < 2 {
             return Err("not enough arguments".to_string());
         }
+        let default = String::new();
+        let todo_name = args.get(2).unwrap_or(&default);
         Ok(InputParams {
-            action: args[1].parse::<action::Action>()?,
-            todo_name: args.get(2).map(|arg| arg.to_string()),
+            action: (format!("{}::{}", &args[1], &todo_name)).parse::<action::Action>()?,
             new_status: args.get(3).map(|arg| arg.to_string().parse()).transpose()?,
             new_description: args.get(4).map(|arg| arg.to_string())
         })
@@ -33,15 +33,13 @@ pub fn run(params: InputParams) -> Result<(), String> {
             }
             Ok(())
         },
-        action::Action::GetOne => {
-            let name = params.todo_name.ok_or("name is required".to_string())?;
-            let todo = todo::get_todo(&name)?;
+        action::Action::GetOne(todo_name) => {
+            let todo = todo::get_todo(&todo_name)?;
             println!("{:?}", todo);
             Ok(())
         },
-        action::Action::Update => {
-            let name = params.todo_name.ok_or("name is required".to_string())?;
-            let todo = todo::update_todo(name, params.new_status, params.new_description)?;
+        action::Action::Update(todo_name) => {
+            let todo = todo::update_todo(todo_name, params.new_status, params.new_description)?;
             println!("Successfully updated todo: {:?}", todo);
             Ok(())
         }
@@ -50,9 +48,8 @@ pub fn run(params: InputParams) -> Result<(), String> {
             println!("Successfully deleted all todos");
             Ok(())
         },
-        action::Action::DeleteOne => {
-            let name = params.todo_name.ok_or("name is required".to_string())?;
-            let todos = todo::delete_one(&name)?;
+        action::Action::DeleteOne(todo_name) => {
+            let todos = todo::delete_one(&todo_name)?;
             println!("Successfully deleted todo. Updated todos: {:?}", todos);
             Ok(())
         }

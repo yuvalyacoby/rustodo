@@ -11,6 +11,21 @@ pub struct Todo {
     pub description: String
 }
 
+impl Default for Todo {
+    fn default() -> Self {
+        Todo { name: "sample".to_string(), status: Status::Open, description: "".to_string() }
+    }
+}
+
+impl Todo {
+    pub fn new(name: String) -> Todo {
+        Todo {
+            name,
+            ..Todo::default()
+        }
+    }
+}
+
 
 pub fn get_db_file() -> fs::File {
     let db_file = env::var("DB_FILE").unwrap_or("dbfile".to_string());
@@ -53,11 +68,7 @@ pub fn update_todo(name: String, new_status: Option<Status>, new_description: Op
             todo.description = description;
         }
     } else {
-        existing_todos.push(Todo {
-            name: name.clone(),
-            status: new_status.unwrap_or(Status::Open),
-            description: new_description.unwrap_or(String::from(""))
-        });
+        existing_todos.push(Todo::new(name.clone()));
     }
     let t = serde_json::to_string::<Vec<Todo>>(&existing_todos).map_err(|e| format!("Failed to stringify new todos: {}", e))?;
     let _ = fs::write(db_file, t);

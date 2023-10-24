@@ -1,6 +1,9 @@
 mod action;
 mod status;
 mod todo;
+mod storage;
+
+use storage::{file_storage, storage_trait::{Storage}};
 
 #[derive(Debug)]
 pub struct InputParams {
@@ -25,31 +28,32 @@ impl InputParams {
 }
 
 pub fn run(params: InputParams) -> Result<(), String> {
+    let s = file_storage::FileStorage;
     match params.action {
         action::Action::GetAll => {
-            let r = todo::get_todos()?;
+            let r = s.get_todos()?;
             for todo in &r {
                 println!("{:?}", todo);
             }
             Ok(())
         },
         action::Action::GetOne(todo_name) => {
-            let todo = todo::get_todo(&todo_name)?;
+            let todo = s.get_todo(&todo_name)?;
             println!("{:?}", todo);
             Ok(())
         },
         action::Action::Update(todo_name) => {
-            let todo = todo::update_todo(todo_name, params.new_status, params.new_description)?;
+            let todo = s.update_todo(todo_name, params.new_status, params.new_description)?;
             println!("Successfully updated todo: {:?}", todo);
             Ok(())
         }
         action::Action::DeleteAll => {
-            todo::delete_all()?;
+            s.delete_all()?;
             println!("Successfully deleted all todos");
             Ok(())
         },
         action::Action::DeleteOne(todo_name) => {
-            let todos = todo::delete_one(&todo_name)?;
+            let todos = s.delete_one(&todo_name)?;
             println!("Successfully deleted todo. Updated todos: {:?}", todos);
             Ok(())
         }

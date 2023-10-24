@@ -27,7 +27,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "rustodocli"
+name = "rustodo"
 version = "0.1.0"
 dependencies = [
  "serde",

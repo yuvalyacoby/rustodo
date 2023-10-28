@@ -2,8 +2,8 @@ mod action;
 mod status;
 mod todo;
 mod storage;
-
-use storage::{file_storage, storage_trait::{Storage}};
+pub mod server;
+use todo::Todo;
 
 #[derive(Debug)]
 pub struct InputParams {
@@ -27,35 +27,34 @@ impl InputParams {
     }
 }
 
-pub fn run(params: InputParams) -> Result<(), String> {
-    let s = file_storage::FileStorage;
+pub fn run(params: InputParams) -> Result<Vec<Todo>, String> {
     match params.action {
         action::Action::GetAll => {
-            let r = s.get_todos()?;
-            for todo in &r {
+            let todos = todo::get_todos()?;
+            for todo in &todos {
                 println!("{:?}", todo);
             }
-            Ok(())
+            Ok(todos)
         },
         action::Action::GetOne(todo_name) => {
-            let todo = s.get_todo(&todo_name)?;
+            let todo = todo::get_todo(&todo_name)?;
             println!("{:?}", todo);
-            Ok(())
+            Ok(vec!(todo))
         },
         action::Action::Update(todo_name) => {
-            let todo = s.update_todo(todo_name, params.new_status, params.new_description)?;
+            let todo = todo::update_todo(todo_name, params.new_status, params.new_description)?;
             println!("Successfully updated todo: {:?}", todo);
-            Ok(())
+            Ok(vec!(todo))
         }
         action::Action::DeleteAll => {
-            s.delete_all()?;
+            todo::delete_all()?;
             println!("Successfully deleted all todos");
-            Ok(())
+            Ok(vec!())
         },
         action::Action::DeleteOne(todo_name) => {
-            let todos = s.delete_one(&todo_name)?;
+            let todos = todo::delete_one(&todo_name)?;
             println!("Successfully deleted todo. Updated todos: {:?}", todos);
-            Ok(())
+            Ok(todos)
         }
     }
 }

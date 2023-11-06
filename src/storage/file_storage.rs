@@ -12,7 +12,7 @@ impl Storage for FileStorage {
         let mut file = get_db_file();
         let mut file_content = String::new();
         let _ = file.read_to_string(&mut file_content).map_err(|e| format!("Failed to read from file {}", e));
-    
+
         serde_json::from_str(&file_content).map_err(|e| format!("Failed to parse JSON: {}", e).to_string())
     }
 
@@ -68,7 +68,9 @@ fn get_db_file() -> fs::File {
             fs::File::open(&db_file).unwrap()
         }
         Err(_) => {
-            fs::File::create(db_file).unwrap()
+            fs::File::create(&db_file).unwrap();
+            let _ = fs::write(&db_file, "[]");
+            fs::File::open(&db_file).unwrap()
         }
     }
 }

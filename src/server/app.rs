@@ -1,5 +1,5 @@
 use axum::{
-    routing::{get, post},
+    routing::{get, delete},
     http::StatusCode,
     Json, Router, extract::Path,
 };
@@ -13,7 +13,8 @@ pub fn get_app() -> Router<> {
     let app = Router::new()
         .route("/", get(root))
         .route("/todo", get(get_todos).post(update_todo))
-        .route("/todo/:todo_name", get(get_todo));
+        .route("/todo/:todo_name", get(get_todo).delete(delete_todo))
+        .route("/todo/delete_all", delete(delete_all));
 
     return app;
 }
@@ -42,6 +43,18 @@ async fn update_todo(
     let todo = todo::update_todo(payload.name, payload.status, payload.description).unwrap();
 
     (StatusCode::CREATED, Json(todo))
+}
+
+async fn delete_todo(Path(todo_name): Path<String>) -> (StatusCode, Json<Vec<Todo>>) {
+    log::debug!("delete_todo called with {:?}", todo_name);
+    let todos = todo::delete_one(&todo_name).unwrap();
+    (StatusCode::ACCEPTED, Json(todos))
+}
+
+async fn delete_all() -> StatusCode {
+    log::debug!("delete_all called");
+    let _ = todo::delete_all();
+    StatusCode::ACCEPTED
 }
 
 
